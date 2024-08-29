@@ -57,8 +57,14 @@ const shieldPositions = {
 	Right : "row-reverse"
 };
 
-const classConcat = function(...classes) {
+const classConcat = (...classes) => {
 	return classes.join(" ");
+}
+
+
+const removeObjPropertyImmutably = (obj, key) => {
+	const { [key]: removedKey, ...rest } = obj;
+	return rest;
 }
 
 export {
@@ -67,5 +73,6 @@ export {
     colors,
     specialCharacters,
     shieldPositions,
-	classConcat
+	classConcat,
+	removeObjPropertyImmutably
 }

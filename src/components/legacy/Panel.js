@@ -22,6 +22,12 @@ class Panel {
 		this.sign = sign;
 		this.exitTab = exitTab;
 	}
+
+	changeColor(newColor) {
+		if (Object.keys(lib.colors).includes(newColor)) {
+			this.color = newColor;
+		}
+	}
 }
 Panel.prototype.cornerType = ["round", "sharp"];
 

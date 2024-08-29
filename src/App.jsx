@@ -11,7 +11,7 @@ import ExitTab from "./components/legacy/ExitTab";
 import Panel from "./components/legacy/Panel";
 import Shield from "./components/legacy/Shield";
 
-import { classConcat } from "./lib";
+import { classConcat, removeObjPropertyImmutably } from "./lib";
 
 import "./style/page.css";
 import "./style/form.css";
@@ -21,13 +21,16 @@ import "./style/shields.css";
 function App() {
   const [polePosition, setPolePosition] = useState("left");
   const [lanesWide, setLanesWide] = useState(1);
-  const [panels, setPanels] = useState([]);
+  const [panels, setPanels] = useState([
+    //new Panel(new Sign({ controlText: "NewSign" }), undefined, new ExitTab()),
+    { sign: { controlCities: ["New Sign"] }, color: "green", corner: "round" },
+  ]);
+  const [selectedPanel, setSelectedPanel] = useState(0);
 
   const app = {
     newPanel: () => {
-      const newSign = new Sign({ controlText: "New Sign" });
-      const newExitTab = new ExitTab();
-      const newPanel = new Panel(newSign, undefined, newExitTab);
+      const newSign = { controlCities: ["New Sign"] };
+      const newPanel = { sign: newSign, color: "green", corner: "round" };
       setPanels((prevPanels) => [...prevPanels, newPanel]);
     },
     duplicatePanel: (panelIndex) => {
@@ -36,7 +39,7 @@ function App() {
         Object.assign(new Shield(), shield)
       );
       const newSign = new Sign({
-        controlText: existingPanel.sign.controlText,
+        controlCities: existingPanel.sign.controlCities,
         shieldPosition: existingPanel.sign.shieldPosition,
         sheildBacks: existingPanel.sign.sheildBacks,
         guideArrow: existingPanel.sign.guideArrow,
@@ -44,7 +47,7 @@ function App() {
         actionMessage: existingPanel.sign.actionMessage,
         shields: newShields,
       });
-      const newExitTab = Object.assign(new ExitTab(), existingPanel.exitTab);
+      const newExitTab = {}; //Object.assign(new ExitTab(), existingPanel.exitTab);
       const newPanel = Object.assign(new Panel(), existingPanel);
       newPanel.sign = newSign;
       newPanel.exitTab = newExitTab;
@@ -87,11 +90,117 @@ function App() {
       });
       return panelIndex + 1;
     },
-    handlePosition: (evt) => {
-      console.log(evt.target.value);
+    handlePosition: (val) => {
+      setPolePosition(val);
     },
     newShield: () => {
       console.log("New Shield");
+    },
+    changePanelColor: (val) => {
+      setPanels((prevPanels) =>
+        prevPanels.map((panel, index) => {
+          if (index === parseInt(selectedPanel)) {
+            panel = { ...panel, color: val };
+          }
+          return panel;
+        })
+      );
+    },
+    changePanelCorner: (val) => {
+      setPanels((prevPanels) =>
+        prevPanels.map((panel, index) => {
+          if (index === parseInt(selectedPanel)) {
+            panel = { ...panel, corner: val };
+          }
+          return panel;
+        })
+      );
+    },
+    changeExitTab: (val) => {
+      const text = val.split(" ")[0].toUpperCase();
+      const numeral = val.slice(text.length).toUpperCase();
+
+      setPanels((prevPanels) =>
+        prevPanels.map((panel, index) => {
+          if (index === parseInt(selectedPanel)) {
+            if (panel.exitTab === undefined) {
+              panel =
+                text === "" && numeral === ""
+                  ? removeObjPropertyImmutably(panel, "exitTab")
+                  : {
+                      ...panel,
+                      exitTab: {
+                        position: "left",
+                        size: "narrow",
+                        text: text,
+                        numeral: numeral,
+                      },
+                    };
+            } else {
+              panel =
+                text === "" && numeral === ""
+                  ? removeObjPropertyImmutably(panel, "exitTab")
+                  : {
+                      ...panel,
+                      exitTab: {
+                        ...panel.exitTab,
+                        text: text,
+                        numeral: numeral,
+                      },
+                    };
+            }
+          }
+          return panel;
+        })
+      );
+    },
+    changeExitPosition: (val) => {
+      setPanels((prevPanels) =>
+        prevPanels.map((panel, index) => {
+          if (index === parseInt(selectedPanel)) {
+            panel = { ...panel, exitTab: { ...panel.exitTab, position: val } };
+          }
+          return panel;
+        })
+      );
+    },
+    changeExitSize: (val) => {
+      setPanels((prevPanels) =>
+        prevPanels.map((panel, index) => {
+          if (index === parseInt(selectedPanel)) {
+            panel = { ...panel, exitTab: { ...panel.exitTab, size: val } };
+          }
+          return panel;
+        })
+      );
+    },
+    changeControlCities: (val) => {
+      setPanels((prevPanels) =>
+        prevPanels.map((panel, index) => {
+          if (index === parseInt(selectedPanel)) {
+            panel = {
+              ...panel,
+              sign: { ...panel.sign, controlCities: val.split("\n") },
+            };
+          }
+          console.log(JSON.stringify(panel));
+          return panel;
+        })
+      );
+    },
+    changeActionMessage: (val) => {
+      setPanels((prevPanels) =>
+        prevPanels.map((panel, index) => {
+          if (index === parseInt(selectedPanel)) {
+            panel = {
+              ...panel,
+              sign: { ...panel.sign, actionMessage: val },
+            };
+          }
+          console.log(JSON.stringify(panel));
+          return panel;
+        })
+      );
     },
   };
 
@@ -102,43 +211,109 @@ function App() {
       </header>
 
       <main>
-        <div id="postContainer">
+        <div
+          id="postContainer"
+          className={classConcat(
+            "polePosition" +
+              polePosition.charAt(0).toUpperCase() +
+              polePosition.slice(1)
+          )}
+        >
           <div className="post"></div>
-          <div className="panelContainer polePositionLeft">
+          <div id="panelContainer">
             {panels.map((panel, index) => (
               <div
                 key={index}
-                className={classConcat(
-                  "panel ",
-                  panel.color,
-                  " ",
-                  panel.corner
-                )}
+                className={classConcat("panel", panel.color, panel.corner)}
               >
-                <div className="exitTabContainer center narrow">
-                  <div className="exitTab center narrow"></div>
+                <div
+                  className={classConcat(
+                    "exitTabContainer",
+                    panel.exitTab !== undefined
+                      ? panel.exitTab.position
+                      : "left",
+                    panel.exitTab !== undefined ? panel.exitTab.size : "full"
+                  )}
+                >
+                  {panel.exitTab ? (
+                    <div
+                      className="exitTab"
+                      style={
+                        panel.exitTab?.text ? { visibility: "visible" } : {}
+                      }
+                    >
+                      <span>{panel.exitTab.text}</span>
+                      <span className="numeral">{panel.exitTab.numeral}</span>
+                    </div>
+                  ) : (
+                    <div className="exitTab"></div>
+                  )}
                 </div>
                 <div className="signContainer exit-narrow exit-center">
-                  <div className="sign exit-narrow exit-center">
+                  <div
+                    className="sign exit-narrow exit-center"
+                    style={
+                      panel.sign.actionMessage
+                        ? {
+                            borderBottomLeftRadius: "0px",
+                            borderBottomRightRadius: "0px",
+                            borderBottomWidth: "0px",
+                          }
+                        : {}
+                    }
+                  >
                     <div className="sideLeftArrow">h</div>
                     <div className="signContentContainer shieldPositionAbove">
                       <div className="shieldsContainer"></div>
-                      <p className="controlText">New Sign</p>
+                      <p className="controlText">
+                        {panel.sign.controlCities.map((line, index) => (
+                          <span key={index}>
+                            {line}
+                            {panel.sign.controlCities.length - 1 > index && (
+                              <br />
+                            )}
+                          </span>
+                        ))}
+                        <br />
+                      </p>
                     </div>
                     <div className="sideRightArrow">H</div>
                   </div>
-                  <div className="guideArrows none">
+                  <div
+                    className="guideArrows none"
+                    style={
+                      panel.sign.actionMessage
+                        ? { display: "block", visibility: "visible" }
+                        : {}
+                    }
+                  >
                     <div className="otherSymbols none">
                       <div className="oSNum"></div>
                     </div>
-                    <div className="actionMessage" style={{display: 'none'}}></div>
+                    {panel.sign.actionMessage ? (
+                      <div
+                        className="actionMessage action_message"
+                        style={{
+                          fontFamily: "Series E",
+                          visibility: "visible",
+                          display: "inline-flex",
+                        }}
+                      >
+                        {panel.sign.actionMessage}
+                      </div>
+                    ) : (
+                      <div
+                        className="actionMessage"
+                        style={{ display: "none" }}
+                      ></div>
+                    )}
                     <div className="arrowContainer"></div>
                   </div>
                 </div>
               </div>
             ))}
-            <div className="post"></div>
           </div>
+          <div className="post"></div>
         </div>
         <form name="signMaker">
           <h2>Sign Editor</h2>
@@ -194,7 +369,13 @@ function App() {
           {/* <label htmlFor="panelEditing">Editing Panel:</label>
       <select id="panelEditing" onChange={app.changeEditingPanel}></select>
       <br /> */}
-          <Dropdown label="Editing Panel:" options={[]} />
+          <Dropdown
+            label="Editing Panel:"
+            options={panels.map((p, i) => {
+              return { label: `Panel ${i + 1}`, value: i };
+            })}
+            onChange={(val) => setSelectedPanel(val)}
+          />
           {/* Color */}
           {/* <label htmlFor="panelColor">Panel Color:</label>
       <select id="panelColor" onChange={app.readForm}></select> */}
@@ -208,6 +389,7 @@ function App() {
               { label: "White", value: "white" },
               { label: "Black", value: "black" },
             ]}
+            onChange={(val) => app.changePanelColor(val)}
           />
           {/* Corner */}
           {/* <label htmlFor="panelCorner">Panel Corners:</label>
@@ -219,16 +401,24 @@ function App() {
               { label: "Round", value: "round" },
               { label: "Sharp", value: "sharp" },
             ]}
+            onChange={(val) => app.changePanelCorner(val)}
           />
           {/* Exit tab */}
           <div>
-            <Textbox placeholder="Exit 00" label="Exit:" />
+            <Textbox
+              placeholder="Exit 00"
+              label="Exit:"
+              onChange={(evt) => {
+                app.changeExitTab(evt.target.value);
+              }}
+            />
             <Dropdown
               options={[
-                { label: "Center", value: "center" },
                 { label: "Left", value: "left" },
+                { label: "Center", value: "center" },
                 { label: "Right", value: "right" },
               ]}
+              onChange={(evt) => app.changeExitPosition(evt)}
             />
             <Dropdown
               options={[
@@ -237,6 +427,7 @@ function App() {
                 { label: "Full", value: "full" },
                 { label: "Edge", value: "edge" },
               ]}
+              onChange={(evt) => app.changeExitSize(evt)}
             />
           </div>
 
@@ -294,7 +485,11 @@ function App() {
         onBlur={app.readForm}
       ></textarea>
       <br /> */}
-          <ParagraphBox label="Control Cities:" />
+          <ParagraphBox
+            label="Control Cities:"
+            defaultValue="New Sign"
+            onChange={(evt) => app.changeControlCities(evt.target.value)}
+          />
           {/* Arrows */}
           {/* <label htmlFor="guideArrow">Arrows:</label>
       <select id="guideArrow" onChange={app.readForm}></select> */}
@@ -345,7 +540,11 @@ function App() {
               { label: "Quebec-Left", value: "quebecLeft" },
             ]}
           />
-          <Textbox placeholder="Action Message" label="Action Message:" />
+          <Textbox
+            placeholder="Action Message"
+            label="Action Message:"
+            onChange={(evt) => app.changeActionMessage(evt.target.value)}
+          />
           {/* <br /> */}
           {/* <label htmlFor="actionMessage" id="actionMessageLabel">
         Action Message:{" "}

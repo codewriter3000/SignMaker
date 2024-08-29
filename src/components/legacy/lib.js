@@ -30,12 +30,12 @@ export default (function() {
 
 	// FHW-defined colors.
 	const colors = {
-		Green : "rgb(0, 95, 77)",
-		Blue : "rgb(0, 67, 123)",
-		Brown : "rgb(98, 51, 30)",
-		Yellow : "rgb(255, 178, 0)",
-		White : "rgb(255, 255, 255)",
-		Black : "rgb(0, 0, 0)"
+		green : "rgb(0, 95, 77)",
+		blue : "rgb(0, 67, 123)",
+		brown : "rgb(98, 51, 30)",
+		yellow : "rgb(255, 178, 0)",
+		white : "rgb(255, 255, 255)",
+		black : "rgb(0, 0, 0)"
 	};
 
 	const specialCharacters = {
