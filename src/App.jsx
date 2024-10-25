@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useDebugValue } from "react";
 import Button from "./components/Form/Button";
 import Dropdown from "./components/Form/Dropdown";
 import Textbox from "./components/Form/Textbox";
 import Checkbox from "./components/Form/Checkbox";
 import ParagraphBox from "./components/Form/ParagraphBox";
 import NumberBox from "./components/Form/NumberBox";
+import Shields from "./components/Form/Shields";
 
 import Sign from "./components/legacy/Sign";
 import ExitTab from "./components/legacy/ExitTab";
@@ -23,21 +24,28 @@ function App() {
   const [lanesWide, setLanesWide] = useState(1);
   const [panels, setPanels] = useState([
     //new Panel(new Sign({ controlText: "NewSign" }), undefined, new ExitTab()),
-    { sign: { controlCities: ["New Sign"] }, color: "green", corner: "round" },
+    { sign: { controlCities: ["New Sign"], shields: [] }, color: "green", corner: "round" },
   ]);
   const [selectedPanel, setSelectedPanel] = useState(0);
 
+  useDebugValue(panels);
+
+  useEffect(() => {
+    console.log(`panels: ${JSON.stringify(panels)}`);
+  }, panels);
+
   const app = {
     newPanel: () => {
-      const newSign = { controlCities: ["New Sign"] };
+      const newSign = { controlCities: ["New Sign"], shields: [] };
       const newPanel = { sign: newSign, color: "green", corner: "round" };
       setPanels((prevPanels) => [...prevPanels, newPanel]);
     },
     duplicatePanel: (panelIndex) => {
       const existingPanel = panels[panelIndex];
-      const newShields = existingPanel.sign.shields.map((shield) =>
-        Object.assign(new Shield(), shield)
-      );
+      const newShields = [];
+      // const newShields = existingPanel.sign.shields.map((shield) =>
+      //   Object.assign(new Shield(), shield)
+      // );
       const newSign = new Sign({
         controlCities: existingPanel.sign.controlCities,
         shieldPosition: existingPanel.sign.shieldPosition,
@@ -92,9 +100,6 @@ function App() {
     },
     handlePosition: (val) => {
       setPolePosition(val);
-    },
-    newShield: () => {
-      console.log("New Shield");
     },
     changePanelColor: (val) => {
       setPanels((prevPanels) =>
@@ -174,6 +179,39 @@ function App() {
         })
       );
     },
+    /* --SHIELDS-- */
+    newShield: () => {
+      setPanels((prevPanels) => {
+        prevPanels.map((panel, index) => {
+          if (index === parseInt(selectedPanel)) {
+            console.log(`panel.sign: ${JSON.stringify(panel.sign)}`);
+            if (!panel.sign["shields"]) {
+              panel.sign["shields"] = [];
+            }
+            panel.sign["shields"] = [...panel.sign.shields, {
+              type: "I",
+              routeNumber: "00",
+              position: "above",
+              bannerType: "none"
+            }];
+          }
+          return panel;
+        })
+      });
+      console.log("New Shield");
+      console.log(`panels3: ${JSON.stringify(panels)}`);
+    },
+    deleteShield: (shieldIndex) => {
+      setPanels((prevPanels) => {
+        prevPanels.map((panel, index) => {
+          if (index === parseInt(selectedPanel)) {
+            panel.sign.shields = panel.sign.shields.filter((_, i) => i !== shieldIndex);
+          }
+          return panel;
+        })
+      });
+    },
+    /*  */
     changeControlCities: (val) => {
       setPanels((prevPanels) =>
         prevPanels.map((panel, index) => {
@@ -221,7 +259,8 @@ function App() {
         >
           <div className="post"></div>
           <div id="panelContainer">
-            {panels.map((panel, index) => (
+            {console.log(`panels2: ${JSON.stringify(panels)}`)}
+            {panels?.map((panel, index) => (
               <div
                 key={index}
                 className={classConcat("panel", panel.color, panel.corner)}
@@ -264,7 +303,20 @@ function App() {
                   >
                     <div className="sideLeftArrow">h</div>
                     <div className="signContentContainer shieldPositionAbove">
-                      <div className="shieldsContainer"></div>
+                      <div className="shieldsContainer">
+                        {panel.sign.shields?.map((shield, index) => (
+                          <>
+                            <p className="to">TO</p>
+                            <div className={`bannerShieldContainer ${shield.type} ${shield.bannerType} bannerPosition${shield.position.toUpperCase()} one`}>
+                              <p className="banner"></p>
+                              <div className="shield">
+                                <object type="image/svtg+xml" className="shieldImg" data="img/shields-without-backs/I-2.svg" />
+                                <p className="routeNumber">{shield.routeNumber}</p>
+                              </div>
+                            </div>
+                          </>
+                        ))}
+                      </div>
                       <p className="controlText">
                         {panel.sign.controlCities.map((line, index) => (
                           <span key={index}>
@@ -371,7 +423,7 @@ function App() {
       <br /> */}
           <Dropdown
             label="Editing Panel:"
-            options={panels.map((p, i) => {
+            options={panels?.map((p, i) => {
               return { label: `Panel ${i + 1}`, value: i };
             })}
             onChange={(val) => setSelectedPanel(val)}
@@ -442,13 +494,7 @@ function App() {
           {/* <select id="exitTabPosition" onChange={app.readForm}></select>
       <select id="exitTabWidth" onChange={app.readForm}></select>
       <br /> */}
-          {/* Shield and banner */}
-          <fieldset>
-            <legend>Sign Shields:</legend>
-            <Button text="New Shield" onClick={app.newShield} />
-            {/* <div id="shields"></div>
-        <input type="button" value="New Shield" onClick={app.newShield} /> */}
-          </fieldset>
+          <Shields app={app} />
           {/* Position of Shields */}
           <div>
             <Dropdown

@@ -61,7 +61,6 @@ const classConcat = (...classes) => {
 	return classes.join(" ");
 }
 
-
 const removeObjPropertyImmutably = (obj, key) => {
 	const { [key]: removedKey, ...rest } = obj;
 	return rest;

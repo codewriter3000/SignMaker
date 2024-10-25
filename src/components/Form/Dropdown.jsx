@@ -11,7 +11,7 @@ const Dropdown = ({ label = '', options, onChange }) => {
         <div>
             <label>{label}</label>
             <select onChange={handleChange}>
-                {options.map((option) => (
+                {options?.map((option) => (
                     <option key={option.value} value={option.value}>
                         {option.label}
                     </option>

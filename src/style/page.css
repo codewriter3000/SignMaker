@@ -119,8 +119,9 @@ html, body {
 }
 
 body {
-	background-color: rgb(144, 181, 255);
+	background-color: rgb(144, 181, 255); /* rgb(16, 16, 16); */
 	font-family: "Series E";
+	/* color: rgb(225, 225, 225); */
 }
 
 footer {
